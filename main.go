@@ -58,9 +58,8 @@ func main() {
 				g_ErrFile = append(g_ErrFile, filePath)
 				println("File:", filePath, " make md5 failed.")
 			} else {
-				if existPath, ok := g_FilePool[fileMd5]; ok {
+				if _, ok := g_FilePool[fileMd5]; ok {
 					println(filePath, "is repeated.")
-					println("Repeated file path:", existPath...)
 					sameFileSize += info.Size()
 					g_FilePool[fileMd5] = append(g_FilePool[fileMd5], filePath)
 				} else {
