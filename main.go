@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"syscall"
 	"time"
 )
 
@@ -24,7 +25,7 @@ type SameFileData struct {
 	FileName string
 	AllPath  []string
 }
-type ReportFile struct {
+type ReportInfo struct {
 	SameFile       []SameFileData
 	BigFilePath    []string
 	TotleFileCount int
@@ -73,7 +74,32 @@ func main() {
 		}
 		return err
 	})
-	outFile := &ReportFile{
+	FileReport(bigPath, sameFileSize, startTick)
+	MoveRepeatFile(rootDir)
+}
+func MoveRepeatFile(rootDir string) {
+	newPath := fmt.Sprintf("%v\\%v", rootDir, *gp_BackFile_Dir)
+	if _, err := os.Open(newPath); err != nil {
+		err := syscall.Mkdir(newPath, syscall.O_CREAT)
+		if err != nil {
+			fmt.Println("create new file path error:", err.Error())
+		}
+	}
+	fmt.Println("repeated file will move to ", newPath)
+	for _, value := range g_FilePool {
+		if len(value) <= 1 {
+			continue
+		}
+		for i := 1; i < len(value); i++ {
+			err := syscall.Rename(value[1], fmt.Sprintf("%v\\%v", newPath, filepath.Base(value[i])))
+			if err != nil {
+				fmt.Println("move %v file error ", filepath.Base(value[i]), err.Error())
+			}
+		}
+	}
+}
+func FileReport(bigPath []string, sameFileSize int64, startTick time.Time) {
+	outFile := &ReportInfo{
 		BigFilePath: bigPath,
 	}
 	fileCount := 0
